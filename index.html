@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Задачник - Task Manager</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Боковая панель -->
+        <aside class="sidebar">
+            <div class="sidebar-content">
+                <!-- Основные разделы -->
+                <nav class="main-nav">
+                    <a href="#" class="nav-item" data-tab="inbox">
+                        <span class="nav-icon">📥</span>
+                        <span class="nav-text">Входящие</span>
+                        <span class="nav-count" id="count-inbox">0</span>
+                    </a>
+                    <a href="#" class="nav-item active" data-tab="today">
+                        <span class="nav-icon">⭐</span>
+                        <span class="nav-text">Сегодня</span>
+                        <span class="nav-count" id="count-today">0</span>
+                    </a>
+                    <a href="#" class="nav-item" data-tab="all">
+                        <span class="nav-icon">📋</span>
+                        <span class="nav-text">Планы</span>
+                        <span class="nav-count" id="count-all">0</span>
+                    </a>
+                    <a href="#" class="nav-item" data-tab="calendar">
+                        <span class="nav-icon">📅</span>
+                        <span class="nav-text">Календарь</span>
+                    </a>
+                </nav>
+
+                <!-- Проекты -->
+                <div class="projects-nav">
+                    <div class="projects-header">
+                        <span class="projects-title">Мои проекты</span>
+                        <button class="add-project-btn" id="add-project-btn" title="Добавить проект">+</button>
+                    </div>
+                    <div id="projects-nav-list" class="projects-nav-list">
+                        <!-- Проекты будут добавлены через JS -->
+                    </div>
+                    <a href="#" class="nav-item" data-tab="no-project">
+                        <span class="nav-icon">📄</span>
+                        <span class="nav-text">Без проекта</span>
+                        <span class="nav-count" id="count-no-project">0</span>
+                    </a>
+                </div>
+
+                <!-- Утилиты -->
+                <nav class="utility-nav">
+                    <a href="#" class="nav-item" data-tab="archive">
+                        <span class="nav-icon">📦</span>
+                        <span class="nav-text">Архив</span>
+                    </a>
+                    <a href="#" class="nav-item" data-tab="trash">
+                        <span class="nav-icon">🗑️</span>
+                        <span class="nav-text">Корзина</span>
+                    </a>
+                </nav>
+            </div>
+        </aside>
+
+        <!-- Основная область -->
+        <main class="main-content">
+            <!-- Верхняя панель -->
+            <header class="top-bar">
+                <div class="search-container">
+                    <input type="text" id="search" class="search-input" placeholder="Поиск...">
+                </div>
+                <div class="top-bar-actions">
+                    <button class="icon-btn" id="filter-btn" title="Фильтры">🔍</button>
+                    <button class="icon-btn" id="sort-btn" title="Сортировка">⇅</button>
+                </div>
+            </header>
+
+            <!-- Заголовок раздела -->
+            <div class="section-header">
+                <h1 id="section-title">Сегодня</h1>
+                <button class="icon-btn" id="section-menu-btn">⋯</button>
+            </div>
+
+            <!-- Фильтры (скрыты по умолчанию) -->
+            <div id="filters-panel" class="filters-panel" style="display: none;">
+                <div class="filters-content">
+                    <div class="filter-group">
+                        <label>Статус:</label>
+                        <select id="filter-status">
+                            <option value="all">Все</option>
+                            <option value="new">Новая</option>
+                            <option value="in-progress">В работе</option>
+                            <option value="completed">Готово</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Приоритет:</label>
+                        <select id="filter-priority">
+                            <option value="all">Все</option>
+                            <option value="high">Высокий</option>
+                            <option value="medium">Средний</option>
+                            <option value="low">Низкий</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Сортировка:</label>
+                        <select id="sort-by">
+                            <option value="deadline-asc">По дедлайну (ближайшие)</option>
+                            <option value="deadline-desc">По дедлайну (дальние)</option>
+                            <option value="priority-asc">По приоритету (высокий → низкий)</option>
+                            <option value="priority-desc">По приоритету (низкий → высокий)</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Список задач -->
+            <div id="tasks-container" class="tasks-container">
+                <div id="tasks-list" class="tasks-list"></div>
+                <div id="no-tasks" class="no-tasks" style="display: none;">
+                    <p>Задач пока нет</p>
+                </div>
+            </div>
+
+            <!-- Кнопка добавления задачи -->
+            <button class="add-task-btn" id="add-task-btn">
+                <span>+</span>
+                <span>Новая задача</span>
+            </button>
+        </main>
+    </div>
+
+    <!-- Модальное окно добавления задачи -->
+    <div id="add-task-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Новая задача</h2>
+            <form id="task-form" class="task-form">
+                <div class="form-group">
+                    <input type="text" id="task-title" placeholder="Название задачи *" required>
+                </div>
+                <div class="form-group">
+                    <textarea id="task-description" rows="3" placeholder="Описание"></textarea>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Проект:</label>
+                        <select id="task-project">
+                            <option value="">Без проекта</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Дедлайн *:</label>
+                        <input type="date" id="task-deadline" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Приоритет *:</label>
+                        <select id="task-priority" required>
+                            <option value="low">Низкий</option>
+                            <option value="medium" selected>Средний</option>
+                            <option value="high">Высокий</option>
+                        </select>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary">Добавить</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Модальное окно редактирования задачи -->
+    <div id="edit-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Редактировать задачу</h2>
+            <form id="edit-form" class="task-form">
+                <input type="hidden" id="edit-id">
+                <div class="form-group">
+                    <input type="text" id="edit-title" placeholder="Название задачи *" required>
+                </div>
+                <div class="form-group">
+                    <textarea id="edit-description" rows="3" placeholder="Описание"></textarea>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Проект:</label>
+                        <select id="edit-project">
+                            <option value="">Без проекта</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Дедлайн *:</label>
+                        <input type="date" id="edit-deadline" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Приоритет *:</label>
+                        <select id="edit-priority" required>
+                            <option value="low">Низкий</option>
+                            <option value="medium">Средний</option>
+                            <option value="high">Высокий</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Статус *:</label>
+                        <select id="edit-status" required>
+                            <option value="new">Новая</option>
+                            <option value="in-progress">В работе</option>
+                            <option value="completed">Готово</option>
+                        </select>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary">Сохранить</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Модальное окно добавления проекта -->
+    <div id="add-project-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Новый проект</h2>
+            <form id="project-form" class="task-form">
+                <div class="form-group">
+                    <input type="text" id="project-name" placeholder="Название проекта *" required>
+                </div>
+                <div class="form-group">
+                    <label>Цвет проекта:</label>
+                    <input type="color" id="project-color" value="#667eea">
+                </div>
+                <button type="submit" class="btn btn-primary">Создать</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
